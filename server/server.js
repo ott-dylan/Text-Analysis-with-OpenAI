@@ -24,28 +24,29 @@ app.post('/analyze', async (req, res) => {
             messages: [
                 {
                     role: 'user',
-                    content: `You are a sophisticated text analysis assistant. Your role is to analyze the given text in depth, identifying any grammar or spelling errors, suggesting improvements for style and clarity, and providing insights on the content. Ensure to categorize your feedback clearly and return the analysis in a structured JSON format.
+                    content: `You are a sophisticated text analysis assistant. Your role is to analyze the given text in depth, identifying any grammar or spelling errors, suggesting improvements for style and clarity, and providing insights on the content. Ensure to categorize your feedback clearly and return the analysis in a structured JSON format. NEVER USE THE SAME SENTENCE TWICE WHEN GIVING FEEDBACK. ONLY ONE COMMENT PER SENTENCE. ONLY DO ONE TYPE PER SENTENCE, SO IF YOU GIVE A GRAMMAR FEEDBACK TO ONE SENTENCE YOU CANNOT DO THE SAME THING FOR ANOTHER SENTENCE. FOR EXAMPLE, IF YOU GO OVER A SENTENCE IN style_suggestions YOU CANNOT DO IT IN FEEDBACK. 500 tokens max.
 
                     Here is an example of a structured response:{
-                        "grammar_errors": [
-                            {
-                            "sentence": "The quick brown foxs jumps over the lazy dog.",
-                            "correction": "The quick brown fox jumps over the lazy dog.",
-                            "comment": "Changed 'foxs' to 'fox' and 'jumps' to 'jump' to correct the subject-verb agreement."
-                            }
-                        ],
                         "style_suggestions": [
                             {
                             "sentence": "The research was very very extensive.",
                             "correction": "The research was extremely extensive.",
                             "comment": "Avoid using repeated words for emphasis. Use a stronger adjective instead."
+                            },
+                            {
+                            "sentence": "He was a cool, tall, nice guy who liked to play basketball and hang out with his friends.",
+                            "correction": "He was tall and played basketball.",
+                            "comment": "More concise writing is easier to read and understand."
                             }
                         ],
-                        "content_insights": [
+                        "feedback": [
                             {
-                            "sentence:": "The quick brown fox jumps over the lazy dog.",
-                            "topic": "Animal Behavior",
-                            "insight": "The sentence seems to be a playful take on the well-known pangram 'The quick brown fox jumps over the lazy dog', which is used to display fonts and test keyboards."
+                            "sentence:": "Using words such as “jumbled,” “funny-shaped,” and “foreign,” the tone is one of confusion",
+                            "comment": "Tone is created by other devices, so you need to identify the initial device you would use to describe "jumbled", etc. Details/___ diction? You pick."
+                            },
+                            {
+                            "sentence": "Figurative language adds more insight to Estrella’s passionate, resilient character. For example, Estrella’s comparison of her teacher’s face to a “crumpled Kleenex” demonstrates Estrella’s judgmental and blunt personality.",
+                            "comment": "Be specific whenever possible. What type of figurative language is this? SAY THAT! Again, here is my same question: Which is more important the device or the characterization/big ideas? You know the answer, so LEAD with that!!!"
                             }
                         ]
                     }
@@ -54,7 +55,6 @@ app.post('/analyze', async (req, res) => {
                 },
             ],
             temperature: 0,
-            max_tokens: 3000,
         })
 
         const rawResponse = gptResponse.choices[0]?.message?.content?.trim()
@@ -75,9 +75,8 @@ function parseResponse(rawResponse) {
         console.log('Raw response:', rawResponse)
         const response = JSON.parse(rawResponse)
         return {
-            grammar_errors: response.grammar_errors || [],
             style_suggestions: response.style_suggestions || [],
-            content_insights: response.content_insights || [],
+            feedback: response.feedback || [],
         }
     } catch (error) {
         console.error('Failed to parse raw response:', error)

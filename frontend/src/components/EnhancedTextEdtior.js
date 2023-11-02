@@ -1,36 +1,50 @@
-// react_frontend/src/components/EnhancedTextEditor.js
-
 import React, { useState } from 'react'
 import { useRef } from 'react'
 import MiniModal from './MiniModal'
 
 const findMatches = (userInput, suggestions) => {
     const matches = []
-    const suggestionTypes = [
-        'grammarErrors',
-        'styleSuggestions',
-        'contentInsights',
-    ]
+    const suggestionTypes = ['styleSuggestions', 'feedback']
+
+    // Create a map to track sentences and their suggestions
+    const sentenceMap = new Map()
 
     suggestionTypes.forEach((type) => {
         ;(suggestions[type] || []).forEach((suggestion) => {
-            const { sentence, comment, correction, topic, insight } = suggestion
+            const { sentence, comment, correction } = suggestion
             if (!sentence) return
-            let startIndex = userInput.indexOf(sentence)
-            let endIndex = startIndex + sentence.length
 
-            if (startIndex !== -1) {
-                matches.push({
-                    start: startIndex,
-                    end: endIndex,
-                    comment,
-                    correction,
-                    topic,
-                    insight,
-                    type, // inferred type
+            // Use the sentence as a key to accumulate suggestions
+            if (!sentenceMap.has(sentence)) {
+                sentenceMap.set(sentence, {
+                    sentence: sentence,
+                    comments: [],
+                    corrections: [],
+                    types: [],
                 })
             }
+            const sentenceData = sentenceMap.get(sentence)
+            sentenceData.comments.push(comment)
+            if (correction) {
+                sentenceData.corrections.push(correction)
+            }
+            sentenceData.types.push(type)
         })
+    })
+
+    // Convert the map back to an array structure
+    sentenceMap.forEach((data, sentence) => {
+        let startIndex = userInput.indexOf(sentence)
+        let endIndex = startIndex + sentence.length
+        if (startIndex !== -1) {
+            matches.push({
+                start: startIndex,
+                end: endIndex,
+                comments: data.comments,
+                corrections: data.corrections,
+                types: data.types,
+            })
+        }
     })
 
     return matches
@@ -62,12 +76,11 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
                 rect.left - editorRect.left - (modalWidth - rect.width) / 2
         }
 
+        // Combine comments and corrections into the content
         const content = {
             oldText: userInput.slice(match.start, match.end),
-            correction: match.correction,
-            comment: match.comment,
-            topic: match.topic,
-            insight: match.insight,
+            corrections: match.corrections,
+            comments: match.comments,
         }
 
         setModalContent(content)
@@ -86,52 +99,85 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
         const matches = findMatches(userInput, suggestions)
         const elements = []
         let lastIndex = 0
+        const inputLines = userInput.split('\\n')
 
-        matches.forEach((match, index) => {
-            const hoverText = `${match.comment || ''} ${
-                match.correction || ''
-            } ${match.topic || ''} ${match.insight || ''}`.trim()
+        inputLines.forEach((line, lineIndex) => {
+            let lineStartIndex = lastIndex
 
-            const underlineClass =
-                match.type === 'grammarErrors'
-                    ? 'text-red-600 underline'
-                    : match.type === 'styleSuggestions'
-                    ? 'text-yellow-600 underline'
-                    : 'text-green-600 underline'
+            matches.forEach((match, matchIndex) => {
+                if (
+                    match.start >= lineStartIndex &&
+                    match.start < lineStartIndex + line.length
+                ) {
+                    if (match.start > lastIndex) {
+                        elements.push(
+                            <span key={`normal-${matchIndex}`}>
+                                {userInput.slice(lastIndex, match.start)}
+                            </span>
+                        )
+                    }
 
-            // Add normal text before the match
-            if (match.start > lastIndex) {
+                    // Determine the class based on the types of suggestions
+                    let underlineClass = ''
+                    if (
+                        match.types.includes('styleSuggestions') &&
+                        match.types.includes('feedback')
+                    ) {
+                        underlineClass = 'text-purple-600 underline' // Both feedback and style suggestions
+                    } else if (match.types.includes('styleSuggestions')) {
+                        underlineClass = 'text-yellow-600 underline' // Only style suggestions
+                    } else if (match.types.includes('feedback')) {
+                        underlineClass = 'text-blue-600 underline' // Only feedback
+                    }
+
+                    // Determine the text to show based on the available data
+                    let textToShow = ''
+                    if (
+                        match.types.includes('feedback') &&
+                        !match.corrections.length
+                    ) {
+                        // If it's feedback and no corrections, show the original text
+                        textToShow = userInput.slice(match.start, match.end)
+                    } else {
+                        // If there are corrections, show them, otherwise show the original sentence
+                        textToShow =
+                            match.corrections.length > 0
+                                ? match.corrections.join(' / ')
+                                : userInput.slice(match.start, match.end)
+                    }
+
+                    elements.push(
+                        <span
+                            key={matchIndex}
+                            className={`${underlineClass} hover:cursor-pointer`}
+                            onMouseEnter={(e) => handleMouseEnter(e, match)}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                            {textToShow}
+                        </span>
+                    )
+
+                    lastIndex = match.end
+                }
+            })
+
+            if (lineStartIndex + line.length > lastIndex) {
                 elements.push(
-                    <span key={`normal-${index}`}>
-                        {userInput.slice(lastIndex, match.start)}
+                    <span key={`line-end-${lineIndex}`}>
+                        {userInput.slice(
+                            lastIndex,
+                            lineStartIndex + line.length
+                        )}
                     </span>
                 )
             }
 
-            // For grammar errors, show the correction. For everything else, show the original text.
-            elements.push(
-                <span
-                    key={index}
-                    className={`${underlineClass} hover:cursor-pointer`}
-                    onMouseEnter={(e) => handleMouseEnter(e, match)}
-                    onMouseLeave={handleMouseLeave}
-                >
-                    {match.type === 'grammarErrors' ||
-                    match.type === 'styleSuggestions'
-                        ? match.correction
-                        : userInput.slice(match.start, match.end)}
-                </span>
-            )
+            lastIndex = lineStartIndex + line.length + 1
 
-            lastIndex = match.end
+            if (lineIndex < inputLines.length - 1) {
+                elements.push(<br key={`br-${lineIndex}`} />)
+            }
         })
-
-        // Add remaining normal text after all matches
-        if (lastIndex < userInput.length) {
-            elements.push(
-                <span key="remaining">{userInput.slice(lastIndex)}</span>
-            )
-        }
 
         return elements
     }

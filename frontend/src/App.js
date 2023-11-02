@@ -20,17 +20,16 @@ function App() {
                 text: userInput,
             })
 
+            console.log(response.data)
             setSuggestions({
-                grammarErrors: response.data.grammar_errors,
                 styleSuggestions: response.data.style_suggestions,
-                contentInsights: response.data.content_insights,
+                feedback: response.data.feedback,
             })
         } catch (error) {
             console.error('Error:', error)
             setSuggestions({
-                grammarErrors: [],
                 styleSuggestions: [],
-                contentInsights: [],
+                feedback: [],
                 error: 'An error occurred while analyzing the text.',
             })
         }

@@ -18,27 +18,18 @@ const MiniModal = ({ content, position, visible }) => {
                     <strong>Original:</strong> <span>{content.oldText}</span>
                 </div>
             )}
-            {content.correction && (
-                <div className="mb-2">
-                    <strong>Correction:</strong>{' '}
-                    <span>{content.correction}</span>
-                </div>
-            )}
-            {content.comment && (
-                <div className="mb-2">
-                    <strong>Comment:</strong> <span>{content.comment}</span>
-                </div>
-            )}
-            {content.topic && (
-                <div className="mb-2">
-                    <strong>Topic:</strong> <span>{content.topic}</span>
-                </div>
-            )}
-            {content.insight && (
-                <div>
-                    <strong>Insight:</strong> <span>{content.insight}</span>
-                </div>
-            )}
+            {content.comments &&
+                content.comments.map((comment, index) => (
+                    <div key={`comment-${index}`} className="mb-2">
+                        <strong>Comment:</strong> <span>{comment}</span>
+                    </div>
+                ))}
+            {content.corrections &&
+                content.corrections.map((correction, index) => (
+                    <div key={`correction-${index}`} className="mb-2">
+                        <strong>Suggestion:</strong> <span>{correction}</span>
+                    </div>
+                ))}
         </div>
     )
 }
