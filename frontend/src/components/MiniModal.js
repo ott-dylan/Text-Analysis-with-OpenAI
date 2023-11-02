@@ -10,7 +10,7 @@ const MiniModal = ({ content, position, visible }) => {
             style={{
                 top: `${position.top}px`,
                 left: `${position.left}px`,
-                maxWidth: '1000px',
+                maxWidth: '50%',
             }}
         >
             {content.oldText && (

@@ -108,6 +108,7 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
                 )
             }
 
+            // For grammar errors, show the correction. For everything else, show the original text.
             elements.push(
                 <span
                     key={index}
@@ -115,7 +116,8 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
                     onMouseEnter={(e) => handleMouseEnter(e, match)}
                     onMouseLeave={handleMouseLeave}
                 >
-                    {match.type === 'grammarErrors'
+                    {match.type === 'grammarErrors' ||
+                    match.type === 'styleSuggestions'
                         ? match.correction
                         : userInput.slice(match.start, match.end)}
                 </span>

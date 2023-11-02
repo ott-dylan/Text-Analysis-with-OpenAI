@@ -37,7 +37,7 @@ app.post('/analyze', async (req, res) => {
                         "style_suggestions": [
                             {
                             "sentence": "The research was very very extensive.",
-                            "suggestion": "The research was extremely extensive.",
+                            "correction": "The research was extremely extensive.",
                             "comment": "Avoid using repeated words for emphasis. Use a stronger adjective instead."
                             }
                         ],
@@ -54,6 +54,7 @@ app.post('/analyze', async (req, res) => {
                 },
             ],
             temperature: 0,
+            max_tokens: 3000,
         })
 
         const rawResponse = gptResponse.choices[0]?.message?.content?.trim()
