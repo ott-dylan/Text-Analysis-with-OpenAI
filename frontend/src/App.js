@@ -8,6 +8,8 @@ import 'react-tooltip/dist/react-tooltip.css'
 function App() {
     const [userInput, setUserInput] = useState('')
     const [suggestions, setSuggestions] = useState([])
+    const [grade, setGrade] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const handleInputChange = (event) => {
         const { value } = event.target
@@ -16,6 +18,8 @@ function App() {
 
     const handleAnalyzeClick = async () => {
         try {
+            setLoading(true)
+
             const response = await axios.post('http://localhost:3001/analyze', {
                 text: userInput,
             })
@@ -24,8 +28,12 @@ function App() {
             setSuggestions({
                 styleSuggestions: response.data.style_suggestions,
                 feedback: response.data.feedback,
+                grade: response.data.grade,
             })
+            setGrade(response.data.grade)
+            setLoading(false)
         } catch (error) {
+            setLoading(false)
             console.error('Error:', error)
             setSuggestions({
                 styleSuggestions: [],
@@ -46,6 +54,10 @@ function App() {
                 onChange={handleInputChange}
                 placeholder="Type your text here..."
             ></textarea>
+            {grade && grade.length > 0 && <p>{grade}</p>}
+
+            {/* Fix: Added loading indicator */}
+            {loading && <p>Loading...</p>}
 
             {/* Fix: Changed text to userInput */}
             <EnhancedTextEditor

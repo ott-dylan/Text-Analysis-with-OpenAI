@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react'
 import MiniModal from './MiniModal'
 
 const findMatches = (userInput, suggestions) => {
+    console.log(suggestions)
     const matches = []
     const suggestionTypes = ['styleSuggestions', 'feedback']
 

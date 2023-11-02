@@ -4,6 +4,8 @@ import React from 'react'
 const MiniModal = ({ content, position, visible }) => {
     if (!visible || !content) return null
 
+    console.log(content)
+
     // Additional styling for different sections
     const sectionStyle = 'mb-4 p-2 border-b'
     const titleStyle = 'font-semibold'
