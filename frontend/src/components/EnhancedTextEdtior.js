@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { useRef } from 'react'
+// react_frontend/src/components/EnhancedTextEditor.js
+
+import React, { useState, useRef } from 'react'
 import MiniModal from './MiniModal'
 
 const findMatches = (userInput, suggestions) => {
@@ -17,7 +18,7 @@ const findMatches = (userInput, suggestions) => {
             // Use the sentence as a key to accumulate suggestions
             if (!sentenceMap.has(sentence)) {
                 sentenceMap.set(sentence, {
-                    sentence: sentence,
+                    sentence,
                     comments: [],
                     corrections: [],
                     types: [],
@@ -28,7 +29,9 @@ const findMatches = (userInput, suggestions) => {
             if (correction) {
                 sentenceData.corrections.push(correction)
             }
-            sentenceData.types.push(type)
+            if (!sentenceData.types.includes(type)) {
+                sentenceData.types.push(type)
+            }
         })
     })
 
@@ -40,9 +43,7 @@ const findMatches = (userInput, suggestions) => {
             matches.push({
                 start: startIndex,
                 end: endIndex,
-                comments: data.comments,
-                corrections: data.corrections,
-                types: data.types,
+                ...data,
             })
         }
     })
@@ -54,7 +55,6 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
     const [modalContent, setModalContent] = useState(null)
     const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 })
     const [isModalVisible, setIsModalVisible] = useState(false)
-
     const editorRef = useRef(null)
 
     const handleMouseEnter = (event, match) => {
@@ -62,23 +62,12 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
 
         const editorRect = editorRef.current.getBoundingClientRect()
         const rect = event.target.getBoundingClientRect()
-        const modalWidth = 1000 // Assuming a fixed width for the modal
-        const spaceRight = editorRect.right - rect.right
-        const spaceLeft = rect.left - editorRect.left
+        const modalWidth = Math.min(1000, window.innerWidth - rect.left - 20) // Ensure the modal fits within the window width
 
-        let leftPosition
-        if (spaceRight > modalWidth) {
-            leftPosition = rect.right - editorRect.left
-        } else if (spaceLeft > modalWidth) {
-            leftPosition = rect.left - editorRect.left - modalWidth
-        } else {
-            leftPosition =
-                rect.left - editorRect.left - (modalWidth - rect.width) / 2
-        }
+        const leftPosition = rect.left - modalWidth / 2 + rect.width / 2
 
-        // Combine comments and corrections into the content
         const content = {
-            oldText: userInput.slice(match.start, match.end),
+            oldText: match.sentence,
             corrections: match.corrections,
             comments: match.comments,
         }
@@ -86,7 +75,7 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
         setModalContent(content)
         setModalPosition({
             top: rect.bottom - editorRect.top + 5,
-            left: leftPosition,
+            left: Math.max(leftPosition, 10), // Ensure the modal does not go off-screen on the left
         })
         setIsModalVisible(true)
     }
@@ -97,102 +86,70 @@ const EnhancedTextEditor = ({ userInput, suggestions }) => {
 
     const markedText = () => {
         const matches = findMatches(userInput, suggestions)
-        const elements = []
         let lastIndex = 0
-        const inputLines = userInput.split('\\n')
-
-        inputLines.forEach((line, lineIndex) => {
-            let lineStartIndex = lastIndex
-
-            matches.forEach((match, matchIndex) => {
-                if (
-                    match.start >= lineStartIndex &&
-                    match.start < lineStartIndex + line.length
-                ) {
-                    if (match.start > lastIndex) {
-                        elements.push(
-                            <span key={`normal-${matchIndex}`}>
-                                {userInput.slice(lastIndex, match.start)}
-                            </span>
-                        )
-                    }
-
-                    // Determine the class based on the types of suggestions
-                    let underlineClass = ''
-                    if (
-                        match.types.includes('styleSuggestions') &&
-                        match.types.includes('feedback')
-                    ) {
-                        underlineClass = 'text-purple-600 underline' // Both feedback and style suggestions
-                    } else if (match.types.includes('styleSuggestions')) {
-                        underlineClass = 'text-yellow-600 underline' // Only style suggestions
-                    } else if (match.types.includes('feedback')) {
-                        underlineClass = 'text-blue-600 underline' // Only feedback
-                    }
-
-                    // Determine the text to show based on the available data
-                    let textToShow = ''
-                    if (
-                        match.types.includes('feedback') &&
-                        !match.corrections.length
-                    ) {
-                        // If it's feedback and no corrections, show the original text
-                        textToShow = userInput.slice(match.start, match.end)
-                    } else {
-                        // If there are corrections, show them, otherwise show the original sentence
-                        textToShow =
-                            match.corrections.length > 0
-                                ? match.corrections.join(' / ')
-                                : userInput.slice(match.start, match.end)
-                    }
-
-                    elements.push(
-                        <span
-                            key={matchIndex}
-                            className={`${underlineClass} hover:cursor-pointer`}
-                            onMouseEnter={(e) => handleMouseEnter(e, match)}
-                            onMouseLeave={handleMouseLeave}
-                        >
-                            {textToShow}
-                        </span>
-                    )
-
-                    lastIndex = match.end
-                }
-            })
-
-            if (lineStartIndex + line.length > lastIndex) {
+        return matches.reduce((elements, match, matchIndex) => {
+            // Add unmarked text before the match
+            if (match.start > lastIndex) {
                 elements.push(
-                    <span key={`line-end-${lineIndex}`}>
-                        {userInput.slice(
-                            lastIndex,
-                            lineStartIndex + line.length
-                        )}
+                    <span key={`text-before-${matchIndex}`}>
+                        {userInput.slice(lastIndex, match.start)}
                     </span>
                 )
             }
 
-            lastIndex = lineStartIndex + line.length + 1
+            // Determine the class based on the types of suggestions
+            let underlineClass =
+                match.types.includes('styleSuggestions') &&
+                match.types.includes('feedback')
+                    ? 'text-purple-600 underline' // Both feedback and style suggestions
+                    : match.types.includes('styleSuggestions')
+                    ? 'text-yellow-600 underline' // Only style suggestions
+                    : 'text-blue-600 underline' // Only feedback
 
-            if (lineIndex < inputLines.length - 1) {
-                elements.push(<br key={`br-${lineIndex}`} />)
+            // Add the marked text
+            elements.push(
+                <span
+                    key={`match-${matchIndex}`}
+                    className={`${underlineClass} hover:cursor-pointer`}
+                    onMouseEnter={(e) => handleMouseEnter(e, match)}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    {userInput.slice(match.start, match.end)}
+                </span>
+            )
+
+            lastIndex = match.end
+
+            // Add the remainder of the text after the last match
+            if (
+                matchIndex === matches.length - 1 &&
+                lastIndex < userInput.length
+            ) {
+                elements.push(
+                    <span key={`text-after-${matchIndex}`}>
+                        {userInput.slice(lastIndex)}
+                    </span>
+                )
             }
-        })
 
-        return elements
+            return elements
+        }, [])
     }
 
     return (
         <div
             ref={editorRef}
             className="w-full p-4 border rounded mb-4 relative"
+            style={{ whiteSpace: 'pre-wrap' }}
         >
             {markedText()}
-            <MiniModal
-                content={modalContent}
-                position={modalPosition}
-                visible={isModalVisible}
-            />
+            {isModalVisible && (
+                <MiniModal
+                    content={modalContent}
+                    position={modalPosition}
+                    visible={isModalVisible}
+                />
+            )}
         </div>
     )
 }
