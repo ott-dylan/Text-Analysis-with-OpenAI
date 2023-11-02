@@ -21,7 +21,7 @@ app.post('/analyze', async (req, res) => {
     try {
         console.log('Loading...')
         const gptResponse = await openai.chat.completions.create({
-            model: 'gpt-4',
+            model: 'gpt-3.5-turbo',
             messages: [
                 {
                     role: 'user',
@@ -81,6 +81,7 @@ function parseResponse(rawResponse) {
             style_suggestions: response.style_suggestions || [],
             feedback: response.feedback || [],
             grade: response.grade || '',
+            comment: response.comment || '',
         }
     } catch (error) {
         console.error('Failed to parse raw response:', error)

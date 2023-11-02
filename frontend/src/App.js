@@ -9,6 +9,7 @@ function App() {
     const [userInput, setUserInput] = useState('')
     const [suggestions, setSuggestions] = useState([])
     const [grade, setGrade] = useState('')
+    const [comment, setComment] = useState('')
     const [loading, setLoading] = useState(false)
 
     const handleInputChange = (event) => {
@@ -29,8 +30,10 @@ function App() {
                 styleSuggestions: response.data.style_suggestions,
                 feedback: response.data.feedback,
                 grade: response.data.grade,
+                comment: response.data.comment,
             })
             setGrade(response.data.grade)
+            setComment(response.data.comment)
             setLoading(false)
         } catch (error) {
             setLoading(false)
@@ -54,7 +57,8 @@ function App() {
                 onChange={handleInputChange}
                 placeholder="Type your text here..."
             ></textarea>
-            {grade && grade.length > 0 && <p>{grade}</p>}
+            {grade && grade.length > 0 && <p>Grade: {grade}</p>}
+            {comment && comment.length > 0 && <p>{comment}</p>}
 
             {/* Fix: Added loading indicator */}
             {loading && <p>Loading...</p>}
