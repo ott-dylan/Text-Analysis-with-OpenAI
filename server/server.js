@@ -1,56 +1,93 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import { Readable } from 'stream';
+// Importing necessary libraries
+import express from 'express'
+import OpenAI from 'openai'
+import dotenv from 'dotenv'
+import cors from 'cors'
 
-dotenv.config();
-import OpenAI from 'openai';
+// Loading environment variables
+dotenv.config()
 
-const openai = new OpenAI({
-  apiKey: process.env.OPEN_AI_KEY,
-});
+// Setting up the Express app and middleware
+const app = express()
+app.use(cors())
+app.use(express.json())
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+// Initializing OpenAI API with the API key from the environment variables
+const openai = new OpenAI(process.env.OpenAI_API_KEY)
 
-app.post('/', async (req, res) => {
-  try {
-    const prompt = req.body.prompt;
+// Defining the route for the text analysis
+app.post('/analyze', async (req, res) => {
+    const { text } = req.body
+    try {
+        const gptResponse = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                {
+                    role: 'user',
+                    content: `You are a sophisticated text analysis assistant. Your role is to analyze the given text in depth, identifying any grammar or spelling errors, suggesting improvements for style and clarity, and providing insights on the content. Ensure to categorize your feedback clearly and return the analysis in a structured JSON format.
 
-    if (!prompt) {
-      return res
-        .status(400)
-        .send({ error: "Missing 'prompt' in the request body" });
+                    Here is an example of a structured response:{
+                        "grammar_errors": [
+                            {
+                            "sentence": "The quick brown foxs jumps over the lazy dog.",
+                            "correction": "The quick brown fox jumps over the lazy dog.",
+                            "comment": "Changed 'foxs' to 'fox' and 'jumps' to 'jump' to correct the subject-verb agreement."
+                            }
+                        ],
+                        "style_suggestions": [
+                            {
+                            "sentence": "The research was very very extensive.",
+                            "suggestion": "The research was extremely extensive.",
+                            "comment": "Avoid using repeated words for emphasis. Use a stronger adjective instead."
+                            }
+                        ],
+                        "content_insights": [
+                            {
+                            "sentence:": "The quick brown fox jumps over the lazy dog.",
+                            "topic": "Animal Behavior",
+                            "insight": "The sentence seems to be a playful take on the well-known pangram 'The quick brown fox jumps over the lazy dog', which is used to display fonts and test keyboards."
+                            }
+                        ]
+                    }
+                    
+                    Analyze the text: "${text}"`,
+                },
+            ],
+            temperature: 0,
+        })
+
+        const rawResponse = gptResponse.choices[0]?.message?.content?.trim()
+
+        const structuredResponse = parseResponse(rawResponse)
+
+        res.json(structuredResponse)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({
+            error: 'An error occurred while analyzing the text.',
+        })
     }
+})
 
-    const response = await openai.chat.completions.create({
-      messages: [
-        { role: 'system', content: 'Make sure to explain every answer. You are a world class educator, dedicated to helping college students understanding of multivariable calculus with little mathematical background. Your main objective is to equip these students with the necessary tools and resources to embark on a journey of self-directed learning in these complex subjects. Your mission is to transform abstract and elusive concepts into straightforward, easily comprehensible ideas, ensuring that students can grasp these fundamental principles with confidence.' },
-        { role: 'user', content: prompt },
-      ],
-      model: 'gpt-3.5-turbo',
-      stream: true, // Enable streaming
-    });
+function parseResponse(rawResponse) {
+    try {
+        console.log('Raw response:', rawResponse)
+        const response = JSON.parse(rawResponse)
+        return {
+            grammar_errors: response.grammar_errors || [],
+            style_suggestions: response.style_suggestions || [],
+            content_insights: response.content_insights || [],
+        }
+    } catch (error) {
+        console.error('Failed to parse raw response:', error)
+        return {
+            error: 'Failed to parse the response from the text analysis.',
+        }
+    }
+}
 
-    const stream = new Readable({
-      read() {},
-    });
-
-    response.data.choices[0].message.content.split('\n').forEach((chunk) => {
-      stream.push(chunk + '\n');
-    });
-
-    stream.push(null);
-
-    stream.pipe(res);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ error });
-  }
-});
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () =>
-  console.log(`Server is running on port http://localhost:${PORT}`)
-);
+// Starting the server
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`)
+})
