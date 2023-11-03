@@ -93,9 +93,16 @@ export default function Home() {
             console.log(progressPercent)
         }
 
-        console.log(response)
-
         let responseParsed = ''
+
+        console.log('JSON String before parsing:', response)
+
+        //add a { to the beginning of the response
+        response = '{' + response
+
+        // Now parse it
+        const jsonData = JSON.parse(response)
+        console.log('JSON Object:', jsonData)
 
         try {
             responseParsed = JSON.parse(response)
