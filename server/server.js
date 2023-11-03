@@ -63,6 +63,7 @@ app.post('/analyze', async (req, res) => {
         const rawResponse = gptResponse.choices[0]?.message?.content?.trim()
 
         const structuredResponse = parseResponse(rawResponse)
+        console.log('Structured response:', structuredResponse)
 
         res.json(structuredResponse)
     } catch (error) {
@@ -78,7 +79,6 @@ function parseResponse(rawResponse) {
         console.log('Raw response:', rawResponse)
         const response = JSON.parse(rawResponse)
         return {
-            style_suggestions: response.style_suggestions || [],
             feedback: response.feedback || [],
             grade: response.grade || '',
             comment: response.comment || '',
