@@ -1,17 +1,11 @@
 // path/filename: pages/api/analyze.js
 
 import OpenAI from 'openai'
-import Cors from 'cors'
 
 export const runtime = 'edge'
 
 // Initializing the OpenAI API
 const openai = new OpenAI(process.env.OpenAI_API_KEY)
-
-// Helper method to initialize CORS
-const cors = Cors({
-    methods: ['POST', 'HEAD'],
-})
 
 // Helper method to run middleware
 function runMiddleware(req, res, fn) {
@@ -27,6 +21,10 @@ function runMiddleware(req, res, fn) {
 
 // The API route function
 export default async function handler(req, res) {
+    // Set CORS headers directly
+    res.headers.set('Access-Control-Allow-Origin', '*')
+    res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.headers.set('Access-Control-Allow-Headers', 'Content-Type')
     // Run the middleware
     await runMiddleware(req, res, cors)
 
