@@ -34,7 +34,9 @@ export const metadata = {
 }
 
 export default function Home() {
-    const [userInput, setUserInput] = useState('')
+    const [userInput, setUserInput] = useState(
+        `However, a simple walk on a hiking trail behind my house made me open my own eyes to the truth. Over the years, everything--even honoring my grandmother--had become second to school and grades. As my shoes humbly tapped against the Earth, the towering trees blackened by the forest fire a few years ago, the faintly colorful pebbles embedded in the sidewalk, and the wispy white clouds hanging in the sky reminded me of my small though nonetheless significant part in a larger whole that is humankind and this Earth. Before I could resolve my guilt, I had to broaden my perspective of the world as well as my responsibilities to my fellow humans.`
+    )
     const [suggestions, setSuggestions] = useState([])
     const [grade, setGrade] = useState('')
     const [rubric, setRubric] = useState('')
