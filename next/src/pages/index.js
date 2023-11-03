@@ -205,7 +205,7 @@ export default function Home() {
             )
         }
 
-        return feedbackElements
+        return feedbackElements // Return the array of elements
     }
 
     return (
