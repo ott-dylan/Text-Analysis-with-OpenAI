@@ -2,40 +2,15 @@
 
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
-
 // Initializing the OpenAI API
 const openai = new OpenAI(process.env.OpenAI_API_KEY)
 
-// Helper method to initialize CORS
-
-// Helper method to run middleware
-export function middleware(req, ev) {
-    const { res } = ev
-
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end()
-        return
-    }
-
-    // Continue with the normal execution if it's not an OPTIONS request
-}
-
 // The API route function
 export default async function handler(req, res) {
-    // Run the middleware
-    await runMiddleware(req, res)
-
     // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' })
     }
-
-    console.log('Request body:', req.body)
 
     //turn req.body into json
     const json = JSON.parse(req.body)
@@ -81,16 +56,16 @@ export default async function handler(req, res) {
           }
         ],
         "overall_comment": "The text is rich with imagery and emotion, but there are opportunities to deepen the narrative and vary the sentence flow for greater impact. Grading each category : Storytelling - 8/10, Imagery - 7/10, Clarity - 7/10, Emotional Impact - 7/10, Overall Cohesiveness - 8.5/10. This results in a final grade of 75/100 on a strict scale.",
-        "grade": "75/100"
+        "grade": "82/100"
       }`,
                 },
                 {
                     role: 'user',
                     content:
+                        ` USE THIS RUBRIC: I WANT YOU TO GRADE THIS HARSHLY BUT FAIRLY (IF IT DESERVES A 100! IF NO RUBRIC IS GIVEN THEN I WANT YOU TO MAEK ONE UP!  ` +
+                        rubric +
                         `Now please analyze this text. GIVE ME FEEDBACK THAT FOCUSES ON QUALITY, NOT QUANITY!: ` +
-                        text +
-                        ` USE THIS RUBRIC: I WANT YOU TO GRADE THIS HARSHLY BUT FAIRLY (IF IT DESERVES A 100 THEN GIVE IT)! IF NO RUBRIC IS GIVEN THEN I WANT YOU TO MAEK ONE UP!  ` +
-                        rubric,
+                        text,
                 },
             ],
             stream: true,

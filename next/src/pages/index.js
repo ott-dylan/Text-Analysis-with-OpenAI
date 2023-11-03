@@ -64,7 +64,7 @@ export default function Home() {
         e.preventDefault()
 
         if (!res.ok) {
-            throw new Error(response.statusText)
+            throw new Error(res.statusText)
         }
 
         // This data is a ReadableStream
