@@ -3,6 +3,8 @@
 import OpenAI from 'openai'
 import Cors from 'cors'
 
+export const runtime = 'edge'
+
 // Initializing the OpenAI API
 const openai = new OpenAI(process.env.OpenAI_API_KEY)
 
