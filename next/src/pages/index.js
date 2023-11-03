@@ -345,13 +345,14 @@ export default function Home() {
                                                 </Label>
                                                 <Textarea
                                                     id="input"
-                                                    placeholder="We is going to the market."
+                                                    placeholder=""
                                                     className="flex-1 lg:min-h-[580px]"
                                                     onChange={(e) =>
                                                         setUserInput(
                                                             e.target.value
                                                         )
                                                     }
+                                                    value={userInput}
                                                 />
                                             </div>
                                         </div>
