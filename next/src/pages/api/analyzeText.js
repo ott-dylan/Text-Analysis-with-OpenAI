@@ -5,6 +5,10 @@ import OpenAI from 'openai'
 // Initializing the OpenAI API
 const openai = new OpenAI(process.env.OpenAI_API_KEY)
 
+export const config = {
+    runtime: 'edge',
+}
+
 // The API route function
 export default async function handler(req, res) {
     // Only allow POST requests
