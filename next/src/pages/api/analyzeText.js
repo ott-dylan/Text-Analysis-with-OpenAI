@@ -1,7 +1,6 @@
 // path/filename: pages/api/analyze.js
 
 import OpenAI from 'openai'
-import Cors from 'cors'
 
 export const runtime = 'edge'
 
@@ -9,26 +8,27 @@ export const runtime = 'edge'
 const openai = new OpenAI(process.env.OpenAI_API_KEY)
 
 // Helper method to initialize CORS
-const cors = Cors({
-    methods: ['POST', 'HEAD'],
-})
 
 // Helper method to run middleware
-function runMiddleware(req, res, fn) {
-    return new Promise((resolve, reject) => {
-        fn(req, res, (result) => {
-            if (result instanceof Error) {
-                return reject(result)
-            }
-            return resolve(result)
-        })
-    })
+export function middleware(req, ev) {
+    const { res } = ev
+
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end()
+        return
+    }
+
+    // Continue with the normal execution if it's not an OPTIONS request
 }
 
 // The API route function
 export default async function handler(req, res) {
     // Run the middleware
-    await runMiddleware(req, res, cors)
+    await runMiddleware(req, res)
 
     // Only allow POST requests
     if (req.method !== 'POST') {
