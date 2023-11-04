@@ -2,8 +2,6 @@
 
 Feedback and Grammar checker for essay writing.
 
-![alt text](https://i.ibb.co/fXCY5FM/Screenshot-2023-11-02-at-2-43-04-PM.png)
-
 # Add your API Key
 
 1. In the server folder, modify the .env file to include your API Key.
