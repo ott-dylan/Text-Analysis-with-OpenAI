@@ -229,7 +229,7 @@ export default function Home() {
                                                 <CardTitle>Rubric</CardTitle>
                                                 <CardDescription>
                                                     Input rubric to be used for
-                                                    grading.
+                                                    grading. (optional)
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent>
